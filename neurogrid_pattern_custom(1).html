@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroGrid Interface</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    [data-theme="dark"] {
+      --bg: #0a0a0a; --bg2: #111111; --bg3: #1a1a1a;
+      --border: #2a2a2a; --border-hover: #3a3a3a;
+      --text: #e8e8e4; --text-sub: #888882; --text-muted: #555550;
+      --nav-bg: rgba(10,10,10,0.85); --card-bg: #111111;
+      --led-off: #1c1c1c; --shadow: 0 4px 24px rgba(0,0,0,0.4);
+      --accent-blue: #3b82f6; --accent-red: #ef4444;
+      --accent-yellow: #eab308; --accent-green: #22c55e;
+      --accent-purple: #a855f7;
+    }
+    [data-theme="light"] {
+      --bg: #f5f5f2; --bg2: #ffffff; --bg3: #eeeeea;
+      --border: #e0e0da; --border-hover: #c0c0ba;
+      --text: #111110; --text-sub: #666660; --text-muted: #aaaaaa;
+      --nav-bg: rgba(245,245,242,0.88); --card-bg: #ffffff;
+      --led-off: #ddddd8; --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --accent-blue: #2563eb; --accent-red: #dc2626;
+      --accent-yellow: #ca8a04; --accent-green: #16a34a;
+      --accent-purple: #9333ea;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; -webkit-font-smoothing: antialiased; }
+
+    nav { position: fixed; top: 0; width: 100%; z-index: 100; background: var(--nav-bg); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); transition: background 0.3s; }
+    .nav-inner { max-width: 1100px; margin: 0 auto; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+    .nav-logo { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 0.12em; color: var(--text-sub); }
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+    .nav-links a { text-decoration: none; font-size: 13px; color: var(--text-sub); padding: 5px 12px; border-radius: 6px; transition: all 0.15s; }
+    .nav-links a:hover { color: var(--text); background: var(--bg3); }
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .theme-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+    .toggle-label { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+    .toggle-track { width: 40px; height: 22px; background: var(--bg3); border-radius: 11px; position: relative; border: 1px solid var(--border); cursor: pointer; }
+    .toggle-knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--text); transition: transform 0.25s cubic-bezier(.4,0,.2,1), background 0.3s; }
+    [data-theme="light"] .toggle-knob { transform: translateX(18px); }
+    .status-pill { display: flex; align-items: center; gap: 6px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--accent-green); background: color-mix(in srgb, var(--accent-green) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent-green) 30%, transparent); padding: 4px 10px; border-radius: 20px; }
+    .pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    /* HERO */
+    .hero { max-width: 1100px; margin: 0 auto; padding: 96px 28px 72px; display: grid; grid-template-columns: 1fr auto; gap: 60px; align-items: center; }
+    .hero-eyebrow { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; }
+    .hero h1 { font-size: 40px; font-weight: 300; letter-spacing: -0.04em; line-height: 1.1; margin-bottom: 16px; }
+    .hero-desc { font-size: 14px; color: var(--text-sub); max-width: 420px; line-height: 1.75; margin-bottom: 36px; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .meta-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; transition: border-color 0.2s; }
+    .meta-card:hover { border-color: var(--border-hover); }
+    .meta-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-family: 'DM Mono', monospace; }
+    .meta-val { font-size: 13px; font-weight: 500; }
+
+    /* LED */
+    .led-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .led { width: 28px; height: 28px; border-radius: 7px; background: var(--led-off); transition: background 0.15s, box-shadow 0.15s; }
+    .led.active-blue   { background: var(--accent-blue);   box-shadow: 0 0 12px var(--accent-blue); }
+    .led.active-red    { background: var(--accent-red);    box-shadow: 0 0 12px var(--accent-red); }
+    .led.active-green  { background: var(--accent-green);  box-shadow: 0 0 12px var(--accent-green); }
+    .led.active-yellow { background: var(--accent-yellow); box-shadow: 0 0 12px var(--accent-yellow); }
+    .led.active-purple { background: var(--accent-purple); box-shadow: 0 0 12px var(--accent-purple); }
+    .hero-led-grid .led { width: 36px; height: 36px; }
+    .mini-led { width: 18px !important; height: 18px !important; border-radius: 4px !important; }
+
+    /* SECTION */
+    .section { max-width: 1100px; margin: 0 auto; padding: 0 28px 80px; }
+    .section-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 32px; }
+    .section-title { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; }
+    .section-line { flex: 1; height: 1px; background: var(--border); }
+
+    /* MODES */
+    .modes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
+    .mode-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 22px 20px; transition: border-color 0.2s, box-shadow 0.2s; }
+    .mode-card.info-card { cursor: default; }
+    .mode-card.mode-normal:hover  { border-color: color-mix(in srgb, var(--accent-blue) 55%, transparent); }
+    .mode-card.mode-reverse:hover { border-color: color-mix(in srgb, var(--accent-red) 55%, transparent); }
+    .mode-card.mode-speed:hover   { border-color: color-mix(in srgb, var(--accent-yellow) 55%, transparent); }
+    .mode-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.06em; }
+    .mode-name { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+    .mode-mini-grid { margin-bottom: 12px; }
+    .mode-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+
+    /* CUSTOM SECTION (separated row) */
+    .custom-section { margin-top: 14px; }
+    .custom-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .custom-section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-purple); }
+    .custom-section-line { flex: 1; height: 1px; background: color-mix(in srgb, var(--accent-purple) 25%, transparent); }
+
+    /* CUSTOM CARD */
+    .custom-card {
+      background: var(--card-bg);
+      border: 1.5px solid var(--accent-purple);
+      border-radius: 14px; padding: 22px 24px;
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-purple) 8%, transparent);
+      position: relative;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 24px;
+      align-items: start;
+    }
+    .custom-badge {
+      position: absolute; top: 14px; right: 14px;
+      font-size: 9px; font-family: 'DM Mono', monospace;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent-purple);
+      background: color-mix(in srgb, var(--accent-purple) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent);
+      padding: 3px 8px; border-radius: 20px;
+    }
+
+    /* RADIO PATTERN LIST */
+    .pattern-list { display: flex; flex-direction: row; gap: 10px; margin: 0; flex-wrap: wrap; }
+
+    .pattern-option {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 13px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      flex: 1; min-width: 140px;
+    }
+    .pattern-option:hover { border-color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 5%, transparent); }
+    .pattern-option.selected {
+      border-color: var(--accent-purple);
+      background: color-mix(in srgb, var(--accent-purple) 8%, transparent);
+    }
+
+    /* hide native radio */
+    .pattern-option input[type=radio] { display: none; }
+
+    .radio-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 1.5px solid var(--border);
+      flex-shrink: 0; margin-top: 1px;
+      display: grid; place-items: center;
+      transition: border-color 0.15s;
+    }
+    .pattern-option.selected .radio-dot { border-color: var(--accent-purple); }
+    .radio-dot::after {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent-purple); opacity: 0; transition: opacity 0.15s;
+    }
+    .pattern-option.selected .radio-dot::after { opacity: 1; }
+
+    .pattern-info { flex: 1; }
+    .pattern-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+    .pattern-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    .push-btn {
+      padding: 11px 20px;
+      background: var(--accent-purple); color: white;
+      border: none; border-radius: 9px;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      white-space: nowrap; align-self: center;
+    }
+    .push-btn:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 4px 16px color-mix(in srgb, var(--accent-purple) 40%, transparent); }
+    .push-btn:disabled { background: var(--accent-green); opacity: 1; transform: none; box-shadow: none; cursor: default; }
+    .push-btn:not(:disabled):active { transform: translateY(0); }
+
+    /* FEATURES */
+    .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .feature-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 18px; transition: border-color 0.2s, box-shadow 0.2s; }
+    .feature-card:hover { border-color: var(--border-hover); box-shadow: var(--shadow); }
+    .feature-icon { width: 36px; height: 36px; border-radius: 9px; background: var(--bg3); border: 1px solid var(--border); display: grid; place-items: center; font-size: 17px; margin-bottom: 14px; }
+    .feature-name { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+    .feature-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
+
+    /* MANUAL */
+    .manual-body { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .manual-block { padding: 22px 26px; border-bottom: 1px solid var(--border); }
+    .manual-block:last-child { border-bottom: none; }
+    .manual-block h4 { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+    .manual-block p { font-size: 13px; color: var(--text-sub); line-height: 1.8; }
+    code { font-family: 'DM Mono', monospace; background: var(--bg3); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; font-size: 12px; color: var(--text); }
+    .warning-box { background: color-mix(in srgb,#eab308 10%,transparent); border: 1px solid color-mix(in srgb,#eab308 30%,transparent); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--text-sub); display: flex; gap: 10px; line-height: 1.6; margin-top: 12px; }
+    .manual-link { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--accent-blue); text-decoration: none; padding: 10px 0; transition: opacity 0.15s; }
+    .manual-link:hover { opacity: 0.75; }
+
+    footer { text-align: center; padding: 24px; font-size: 11px; font-family: 'DM Mono', monospace; color: var(--text-muted); letter-spacing: 0.06em; border-top: 1px solid var(--border); }
+
+    @media(max-width:860px) {
+      .modes-grid { grid-template-columns: 1fr 1fr; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .hero { grid-template-columns: 1fr; }
+      nav .nav-links { display: none; }
+      .custom-card { grid-template-columns: 1fr; gap: 14px; }
+      .push-btn { width: 100%; }
+    }
+    @media(max-width:500px) {
+      .modes-grid, .features-grid { grid-template-columns: 1fr; }
+      .pattern-list { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-logo">NEUROGRID</span>
+    <ul class="nav-links">
+      <li><a href="#modes">Modes</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#manual">Manual</a></li>
+    </ul>
+    <div class="nav-right">
+      <div class="theme-toggle" onclick="toggleTheme()">
+        <span class="toggle-label" id="theme-label">DARK</span>
+        <div class="toggle-track"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="status-pill">
+        <div style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;" class="pulse"></div>
+        Connected
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">Device Control Panel</div>
+    <h1>NeuroGrid<br>Interface</h1>
+    <p class="hero-desc">A precision-built cognitive training system designed to test memory, reaction speed, and pattern recognition — served directly from your ESP32.</p>
+    <div class="meta-grid">
+      <div class="meta-card"><div class="meta-label">Status</div><div class="meta-val" style="color:var(--accent-green)">Connected</div></div>
+      <div class="meta-card"><div class="meta-label">Firmware</div><div class="meta-val">v1.0.3</div></div>
+      <div class="meta-card"><div class="meta-label">Board</div><div class="meta-val">ESP32</div></div>
+      <div class="meta-card"><div class="meta-label">Network</div><div class="meta-val">NeuroGrid_AP</div></div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;">Live Grid</div>
+    <div class="led-grid hero-led-grid" id="heroGrid"></div>
+  </div>
+</div>
+
+<!-- MODES -->
+<section class="section" id="modes">
+  <div class="section-head">
+    <span class="section-title">Operating Modes</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="modes-grid">
+
+    <!-- Normal -->
+    <div class="mode-card info-card mode-normal">
+      <div class="mode-num">01 —</div>
+      <div class="mode-name">Normal Mode</div>
+      <div class="led-grid mode-mini-grid" id="normalGrid" style="gap:6px;margin-bottom:12px;"></div>
+      <p class="mode-desc">Progressive memory challenge with increasing sequence length and speed. The default training mode.</p>
+    </div>
+
+    <!-- Reverse -->
+    <div class="mode-card info-card mode-reverse">
+      <div class="mode-num">02 —</div>
+      <div class="mode-name">Reverse Mode</div>
+      <div class="led-grid mode-mini-grid" id="reverseGrid" style="gap:6px;margin-bottom:12px;"></div>
+      <p class="mode-desc">Recall the LED sequence in reverse order — a harder memory challenge for advanced users.</p>
+    </div>
+
+    <!-- Speed -->
+    <div class="mode-card info-card mode-speed">
+      <div class="mode-num">03 —</div>
+      <div class="mode-name">Speed Mode</div>
+      <div class="led-grid mode-mini-grid" id="speedGrid" style="gap:6px;margin-bottom:12px;"></div>
+      <p class="mode-desc">Fast-paced reaction challenge with minimal delay between LEDs. Tests raw reflex speed.</p>
+    </div>
+
+  </div>
+
+  <!-- Custom Mode — separated row -->
+  <div class="custom-section">
+    <div class="custom-section-head">
+      <span class="custom-section-label">04 — Custom Mode</span>
+      <div class="custom-section-line"></div>
+      <div class="custom-badge" style="position:static;">Configurable</div>
+    </div>
+    <div class="custom-card">
+      <!-- Left: label -->
+      <div>
+        <div class="mode-name" style="color:var(--accent-purple);margin-bottom:4px;">Pattern Select</div>
+        <p class="mode-desc" style="max-width:160px;">Choose a pattern and push it wirelessly to the device.</p>
+      </div>
+
+      <!-- Middle: radio patterns -->
+      <div class="pattern-list" id="patternList">
+        <label class="pattern-option selected" onclick="selectPattern(this,'pattern_a')">
+          <input type="radio" name="pattern" value="pattern_a" checked>
+          <div class="radio-dot"></div>
+          <div class="pattern-info">
+            <div class="pattern-name">Pattern A</div>
+            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
+          </div>
+        </label>
+        <label class="pattern-option" onclick="selectPattern(this,'pattern_b')">
+          <input type="radio" name="pattern" value="pattern_b">
+          <div class="radio-dot"></div>
+          <div class="pattern-info">
+            <div class="pattern-name">Pattern B</div>
+            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
+          </div>
+        </label>
+        <label class="pattern-option" onclick="selectPattern(this,'pattern_c')">
+          <input type="radio" name="pattern" value="pattern_c">
+          <div class="radio-dot"></div>
+          <div class="pattern-info">
+            <div class="pattern-name">Pattern C</div>
+            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
+          </div>
+        </label>
+        <label class="pattern-option" onclick="selectPattern(this,'pattern_d')">
+          <input type="radio" name="pattern" value="pattern_d">
+          <div class="radio-dot"></div>
+          <div class="pattern-info">
+            <div class="pattern-name">Pattern D</div>
+            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Right: push button -->
+      <button class="push-btn" id="pushBtn" onclick="pushPattern()">
+        ↑ Push Pattern to Device
+      </button>
+    </div>
+  </div>
+
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-head">
+    <span class="section-title">Features</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-name">Integrated Web Portal</div>
+      <p class="feature-desc">The ESP32 hosts a local, responsive website over Wi-Fi — acting as both a control center and a digital user manual. No internet required.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📡</div>
+      <div class="feature-name">Wireless Pattern Programming</div>
+      <p class="feature-desc">A teacher or friend can select a pattern on this dashboard and push it to the device instantly over the local network — no cables needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔋</div>
+      <div class="feature-name">Battery Powered (2500mAh)</div>
+      <p class="feature-desc">Equipped with a high-capacity Li-ion cell, providing hours of untethered gameplay for mobile STEM learning sessions.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-name">Built-in Charging</div>
+      <p class="feature-desc">Features a TP4056 module for safe recharging via a standard USB cable, with built-in protection against over-discharge.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">😴</div>
+      <div class="feature-name">Intelligent Sleep Mode</div>
+      <p class="feature-desc">After 15 seconds of inactivity, the system enters a low-power sleep state — turning off the LCD and LEDs until a button press wakes it up.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <div class="feature-name">Cognitive Training</div>
+      <p class="feature-desc">Three built-in modes — Normal, Reverse, and Speed — test memory, pattern recall, and reaction time progressively.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MANUAL -->
+<section class="section" id="manual">
+  <div class="section-head">
+    <span class="section-title">User Manual</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="manual-body">
+    <div class="manual-block">
+      <h4>Overview</h4>
+      <p>NeuroGrid is a battery-powered ESP32-based cognitive training device using a 3×3 LED grid. It challenges users to memorize and reproduce LED sequences across three built-in modes, with a fourth Custom Mode that lets a teacher or friend wirelessly push a specific pattern to the device.</p>
+    </div>
+    <div class="manual-block">
+      <h4>Getting Started</h4>
+      <p>1. Power on NeuroGrid. The LED will stabilize once it's ready.<br>
+         2. On your phone, connect to Wi-Fi network <code>NeuroGrid_AP</code>.<br>
+         3. Open your browser and go to <code>192.168.4.1</code>.<br>
+         4. The device starts in Normal Mode by default. Use Custom Mode to push a specific pattern.</p>
+    </div>
+    <div class="manual-block">
+      <h4>Modes Reference</h4>
+      <p><strong>Normal</strong> — Progressive memory game. Sequences grow longer over time.<br><br>
+         <strong>Reverse</strong> — Same as Normal but you must recall the sequence in reverse order.<br><br>
+         <strong>Speed</strong> — Rapid LED flashes to test raw reaction time.<br><br>
+         <strong>Custom</strong> — Select one of the preset patterns and push it wirelessly to the device.</p>
+    </div>
+    <div class="manual-block">
+      <h4>Custom Mode</h4>
+      <p>In the Modes section above, choose a pattern using the radio buttons, then press <strong>Push Pattern to Device</strong>. The selected pattern will be sent to NeuroGrid instantly over the local Wi-Fi connection. Only one pattern can be active at a time.</p>
+    </div>
+    <div class="manual-block">
+      <h4>Battery & Charging</h4>
+      <p>NeuroGrid runs on a 2500mAh Li-ion battery. To charge, connect via a standard USB cable — the TP4056 module handles safe charging and over-discharge protection. After 15 seconds of inactivity, the device enters sleep mode automatically. Press any button to wake it.</p>
+    </div>
+    <div class="manual-block">
+      <h4>Troubleshooting</h4>
+      <p>If this page fails to load, ensure you are connected to <code>NeuroGrid_AP</code> and not your home network. If unresponsive, power cycle the device and wait 5–10 seconds before reconnecting.</p>
+      <div class="warning-box">⚠️ <span>Do not expose to moisture or high heat. Ensure stable power during pattern transmission to avoid incomplete pushes.</span></div>
+    </div>
+    <div class="manual-block">
+      <h4>Documentation</h4>
+      <a class="manual-link" href="#" target="_blank">📄 Open Full Manual (PDF) ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>NEUROGRID · ESP32 LOCAL PANEL · v1.0.3 · BATTERY POWERED · NO INTERNET REQUIRED</footer>
+
+<script>
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.getElementById('theme-label').textContent = isDark ? 'LIGHT' : 'DARK';
+  }
+
+  // LED grids
+  const COLORS = ['blue','red','green','yellow','purple'];
+  function createGrid(id, mini=false) {
+    const el = document.getElementById(id);
+    for (let i = 0; i < 9; i++) {
+      const d = document.createElement('div');
+      d.className = 'led' + (mini ? ' mini-led' : '');
+      el.appendChild(d);
+    }
+  }
+  function animateGrid(id, ms) {
+    const el = document.getElementById(id);
+    const leds = el.querySelectorAll('.led');
+    return setInterval(() => {
+      const idx = Math.floor(Math.random() * leds.length);
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      leds[idx].classList.add('active-' + color);
+      setTimeout(() => leds[idx].classList.remove('active-' + color), ms * 0.75);
+    }, ms);
+  }
+
+  createGrid('heroGrid');
+  createGrid('normalGrid', true);
+  createGrid('reverseGrid', true);
+  createGrid('speedGrid', true);
+
+  animateGrid('heroGrid', 380);
+  animateGrid('normalGrid', 700);
+  animateGrid('reverseGrid', 650);
+  animateGrid('speedGrid', 140);
+
+  // Pattern selection
+  let selectedPattern = 'pattern_a';
+
+  function selectPattern(label, value) {
+    document.querySelectorAll('.pattern-option').forEach(l => l.classList.remove('selected'));
+    label.classList.add('selected');
+    selectedPattern = value;
+    const btn = document.getElementById('pushBtn');
+    btn.textContent = '↑ Push Pattern to Device';
+    btn.disabled = false;
+  }
+
+  function pushPattern() {
+    const btn = document.getElementById('pushBtn');
+    btn.textContent = 'Pushing…';
+    // fetch('/setpattern?id=' + selectedPattern);   ← wire to ESP32
+    setTimeout(() => {
+      btn.textContent = '✓ Pattern Pushed Successfully';
+      btn.disabled = true;
+    }, 750);
+  }
+</script>
+</body>
+</html>
