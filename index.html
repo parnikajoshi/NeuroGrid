@@ -88,86 +88,6 @@
     .mode-mini-grid { margin-bottom: 12px; }
     .mode-desc { font-size: 12px; color: var(--text-sub); line-height: 1.6; }
 
-    /* CUSTOM SECTION (separated row) */
-    .custom-section { margin-top: 14px; }
-    .custom-section-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .custom-section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent-purple); }
-    .custom-section-line { flex: 1; height: 1px; background: color-mix(in srgb, var(--accent-purple) 25%, transparent); }
-
-    /* CUSTOM CARD */
-    .custom-card {
-      background: var(--card-bg);
-      border: 1.5px solid var(--accent-purple);
-      border-radius: 14px; padding: 22px 24px;
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-purple) 8%, transparent);
-      position: relative;
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 24px;
-      align-items: start;
-    }
-    .custom-badge {
-      position: absolute; top: 14px; right: 14px;
-      font-size: 9px; font-family: 'DM Mono', monospace;
-      letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--accent-purple);
-      background: color-mix(in srgb, var(--accent-purple) 12%, transparent);
-      border: 1px solid color-mix(in srgb, var(--accent-purple) 30%, transparent);
-      padding: 3px 8px; border-radius: 20px;
-    }
-
-    /* RADIO PATTERN LIST */
-    .pattern-list { display: flex; flex-direction: row; gap: 10px; margin: 0; flex-wrap: wrap; }
-
-    .pattern-option {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 11px 13px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      position: relative;
-      flex: 1; min-width: 140px;
-    }
-    .pattern-option:hover { border-color: var(--accent-purple); background: color-mix(in srgb, var(--accent-purple) 5%, transparent); }
-    .pattern-option.selected {
-      border-color: var(--accent-purple);
-      background: color-mix(in srgb, var(--accent-purple) 8%, transparent);
-    }
-
-    /* hide native radio */
-    .pattern-option input[type=radio] { display: none; }
-
-    .radio-dot {
-      width: 16px; height: 16px; border-radius: 50%;
-      border: 1.5px solid var(--border);
-      flex-shrink: 0; margin-top: 1px;
-      display: grid; place-items: center;
-      transition: border-color 0.15s;
-    }
-    .pattern-option.selected .radio-dot { border-color: var(--accent-purple); }
-    .radio-dot::after {
-      content: ''; width: 8px; height: 8px; border-radius: 50%;
-      background: var(--accent-purple); opacity: 0; transition: opacity 0.15s;
-    }
-    .pattern-option.selected .radio-dot::after { opacity: 1; }
-
-    .pattern-info { flex: 1; }
-    .pattern-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
-    .pattern-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
-
-    .push-btn {
-      padding: 11px 20px;
-      background: var(--accent-purple); color: white;
-      border: none; border-radius: 9px;
-      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-      cursor: pointer; transition: all 0.15s;
-      white-space: nowrap; align-self: center;
-    }
-    .push-btn:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 4px 16px color-mix(in srgb, var(--accent-purple) 40%, transparent); }
-    .push-btn:disabled { background: var(--accent-green); opacity: 1; transform: none; box-shadow: none; cursor: default; }
-    .push-btn:not(:disabled):active { transform: translateY(0); }
-
     /* FEATURES */
     .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
     .feature-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 18px; transition: border-color 0.2s, box-shadow 0.2s; }
@@ -194,12 +114,9 @@
       .features-grid { grid-template-columns: 1fr 1fr; }
       .hero { grid-template-columns: 1fr; }
       nav .nav-links { display: none; }
-      .custom-card { grid-template-columns: 1fr; gap: 14px; }
-      .push-btn { width: 100%; }
     }
     @media(max-width:500px) {
       .modes-grid, .features-grid { grid-template-columns: 1fr; }
-      .pattern-list { flex-direction: column; }
     }
   </style>
 </head>
@@ -278,64 +195,6 @@
     </div>
 
   </div>
-
-  <!-- Custom Mode — separated row -->
-  <div class="custom-section">
-    <div class="custom-section-head">
-      <span class="custom-section-label">04 — Custom Mode</span>
-      <div class="custom-section-line"></div>
-      <div class="custom-badge" style="position:static;">Configurable</div>
-    </div>
-    <div class="custom-card">
-      <!-- Left: label -->
-      <div>
-        <div class="mode-name" style="color:var(--accent-purple);margin-bottom:4px;">Pattern Select</div>
-        <p class="mode-desc" style="max-width:160px;">Choose a pattern and push it wirelessly to the device.</p>
-      </div>
-
-      <!-- Middle: radio patterns -->
-      <div class="pattern-list" id="patternList">
-        <label class="pattern-option selected" onclick="selectPattern(this,'pattern_a')">
-          <input type="radio" name="pattern" value="pattern_a" checked>
-          <div class="radio-dot"></div>
-          <div class="pattern-info">
-            <div class="pattern-name">Pattern A</div>
-            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
-          </div>
-        </label>
-        <label class="pattern-option" onclick="selectPattern(this,'pattern_b')">
-          <input type="radio" name="pattern" value="pattern_b">
-          <div class="radio-dot"></div>
-          <div class="pattern-info">
-            <div class="pattern-name">Pattern B</div>
-            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
-          </div>
-        </label>
-        <label class="pattern-option" onclick="selectPattern(this,'pattern_c')">
-          <input type="radio" name="pattern" value="pattern_c">
-          <div class="radio-dot"></div>
-          <div class="pattern-info">
-            <div class="pattern-name">Pattern C</div>
-            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
-          </div>
-        </label>
-        <label class="pattern-option" onclick="selectPattern(this,'pattern_d')">
-          <input type="radio" name="pattern" value="pattern_d">
-          <div class="radio-dot"></div>
-          <div class="pattern-info">
-            <div class="pattern-name">Pattern D</div>
-            <div class="pattern-desc">Placeholder — replace with your pattern name and description.</div>
-          </div>
-        </label>
-      </div>
-
-      <!-- Right: push button -->
-      <button class="push-btn" id="pushBtn" onclick="pushPattern()">
-        ↑ Push Pattern to Device
-      </button>
-    </div>
-  </div>
-
 </section>
 
 <!-- FEATURES -->
@@ -387,25 +246,20 @@
   <div class="manual-body">
     <div class="manual-block">
       <h4>Overview</h4>
-      <p>NeuroGrid is a battery-powered ESP32-based cognitive training device using a 3×3 LED grid. It challenges users to memorize and reproduce LED sequences across three built-in modes, with a fourth Custom Mode that lets a teacher or friend wirelessly push a specific pattern to the device.</p>
+      <p>NeuroGrid is a battery-powered ESP32-based cognitive training device using a 3×3 LED grid. It challenges users to memorize and reproduce LED sequences across three built-in modes.</p>
     </div>
     <div class="manual-block">
       <h4>Getting Started</h4>
       <p>1. Power on NeuroGrid. The LED will stabilize once it's ready.<br>
          2. On your phone, connect to Wi-Fi network <code>NeuroGrid_AP</code>.<br>
          3. Open your browser and go to <code>192.168.4.1</code>.<br>
-         4. The device starts in Normal Mode by default. Use Custom Mode to push a specific pattern.</p>
+         4. The device starts in Normal Mode by default.</p>
     </div>
     <div class="manual-block">
       <h4>Modes Reference</h4>
       <p><strong>Normal</strong> — Progressive memory game. Sequences grow longer over time.<br><br>
          <strong>Reverse</strong> — Same as Normal but you must recall the sequence in reverse order.<br><br>
-         <strong>Speed</strong> — Rapid LED flashes to test raw reaction time.<br><br>
-         <strong>Custom</strong> — Select one of the preset patterns and push it wirelessly to the device.</p>
-    </div>
-    <div class="manual-block">
-      <h4>Custom Mode</h4>
-      <p>In the Modes section above, choose a pattern using the radio buttons, then press <strong>Push Pattern to Device</strong>. The selected pattern will be sent to NeuroGrid instantly over the local Wi-Fi connection. Only one pattern can be active at a time.</p>
+         <strong>Speed</strong> — Rapid LED flashes to test raw reaction time.</p>
     </div>
     <div class="manual-block">
       <h4>Battery & Charging</h4>
@@ -414,7 +268,7 @@
     <div class="manual-block">
       <h4>Troubleshooting</h4>
       <p>If this page fails to load, ensure you are connected to <code>NeuroGrid_AP</code> and not your home network. If unresponsive, power cycle the device and wait 5–10 seconds before reconnecting.</p>
-      <div class="warning-box">⚠️ <span>Do not expose to moisture or high heat. Ensure stable power during pattern transmission to avoid incomplete pushes.</span></div>
+      <div class="warning-box">⚠️ <span>Do not expose to moisture or high heat. Ensure stable power during operation.</span></div>
     </div>
     <div class="manual-block">
       <h4>Documentation</h4>
@@ -463,28 +317,6 @@
   animateGrid('normalGrid', 700);
   animateGrid('reverseGrid', 650);
   animateGrid('speedGrid', 140);
-
-  // Pattern selection
-  let selectedPattern = 'pattern_a';
-
-  function selectPattern(label, value) {
-    document.querySelectorAll('.pattern-option').forEach(l => l.classList.remove('selected'));
-    label.classList.add('selected');
-    selectedPattern = value;
-    const btn = document.getElementById('pushBtn');
-    btn.textContent = '↑ Push Pattern to Device';
-    btn.disabled = false;
-  }
-
-  function pushPattern() {
-    const btn = document.getElementById('pushBtn');
-    btn.textContent = 'Pushing…';
-    // fetch('/setpattern?id=' + selectedPattern);   ← wire to ESP32
-    setTimeout(() => {
-      btn.textContent = '✓ Pattern Pushed Successfully';
-      btn.disabled = true;
-    }, 750);
-  }
 </script>
 </body>
 </html>
